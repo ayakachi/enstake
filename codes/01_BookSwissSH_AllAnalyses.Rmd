@@ -1,0 +1,182 @@
+---
+title: 'Swiss Energy Governance Book Chapter'
+author: "Aya Kachi"
+date: " July 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+We need the following: 
+```{r cars, warning=FALSE}
+library(ggplot2)
+library(likert)
+```
+
+## Data - Main dataset
+This is the fullest dataset that has both the canton and non-canton version. It includes the entire population. Q: Why **847** observsations though??
+```{r data}
+data.full <- read.csv("../data/20200625_SESHS_All.csv", sep = ",", header = T, encoding = "UTF-8")
+```
+
+## Data cleaning
+- Drop 1 obs that has 0% progress. (FOe)
+- Take all those submitted. 
+- Drop 2 uninvited submissions. (It's a pity but more consistent for paper-writing.)
+- Keep those coded as "finished" (completed).
+```{r cleaning, results='hide'}
+attach(data.full)
+data <- data.full[which(I_Participation == 1 & Progress != 0), ]
+detach(data.full) 
+attach(data)
+data <- data[!(X == "174" | X == "202"), ]
+detach(data) 
+attach(data)
+dim1 <- dim(data)
+dim1
+data <- data[which(Finished == 1), ]
+detach(data) 
+attach(data)
+dim2 <- dim(data)
+dim2
+```
+We received `r dim1[1]` submissions, among which `r dim2[1]` completed most parts of the survey. This makes the completion rate `r round(dim2[1]/dim1[1],2)`. Our analyes will be based on the completed data of N=`r dim2[1]`.
+
+
+
+## Vision on the ES2050 goals
+### Wind, DGE, Subsidies, and E-Mobility
+- According to the Energy Strategy 2050, around 800-900 wind turbines need to be constructed in Switzerland by 2050. All things considered at this moment, from your organization's point of view, does this target look realistic or unrealistic?
+
+- According to the Energy Strategy 2050, deep geothermal energy (DGE) is a viable option to produce baseload electricity. All things considered at this moment, from your organization's point of view, does a substantial increase in electricity generation capacity by DGE look realistic or more unrealistic?
+
+- According to the Energy Strategy 2050, feed-in tariffs for renewable energies will be phased out in 2022, and investment contributions and one-time payments will be phased out in 2030. All things considered at this moment, from your organization's point of view, do you think it is realistic that the targets of the Energy Strategy 2050 will be attained in this policy environment?
+
+- According to the recently published roadmap for the promotion of electric mobility, the share of electric vehicles of newly registered cars ought to reach 15 percent in 2022. All things considered at this moment, from your organization's point of view, does this target look realistic or unrealistic?
+
+```{r plottheme, echo=F}
+blank_themep <-  #theme_minimal()+
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title= element_text(size=15, face="bold", hjust = 0.5, color = "black"),
+    legend.title=element_text(size=11, face="bold", color = "black"),
+    legend.text=element_text(size=11, color = "black"),
+    legend.key.size=unit(.01,"npc"),
+    axis.text.x=element_text(size=10, color = "black"),
+    axis.text.y=element_text(size=11, color = "black"),
+    aspect.ratio = 1/2.5
+   )
+```
+
+```{r likertlevels, echo=F, results='hide'}
+visionlevels.original <- c('Completely realistic', 'Rather realistic', 'Rather unrealistic', 'Completely unrealistic')
+visionlevels <- c('Completely unrealistic', 'Rather unealistic', 'Rather realistic', 'Completely realistic')
+n <- 4
+visioncolors <- gray.colors(n, start = 0.5, end = 0.1, gamma = 1.8)
+visioncolors
+```
+
+I have reversed the response scale. Now:
+- Completely unrealistic.  (1)  Rather unrealistic.  (2)  Rather realistic.  (3)  Completely realistic.  (4) 
+
+```{r Voverview, echo=T}
+options(digits=4)
+vision <- subset(data, select = c(Q19,Q22,Q25,Q28))
+## I'll reverse the coding order!
+vision$Q19 <- factor((5-vision$Q19), labels = visionlevels)
+vision$Q22 <- factor((5-vision$Q22), labels = visionlevels)
+vision$Q25 <- factor((5-vision$Q25), labels = visionlevels)
+vision$Q28 <- factor((5-vision$Q28), labels = visionlevels)
+
+names(vision) <- c(
+			Q19="Construction of 800-900 wind turbines by 2050.",
+			Q22="Large increase in power generation by DGE.",
+			Q25="RE targets with subsidy (incl FITs) phase-outs.",
+			Q28="15% EVs among newly registered cars by 2022.")
+
+l4 <- likert(vision)
+dimvision<- dim(na.omit(vision))
+plot.l4 <- likert.bar.plot(l4, wrap = 25, low.color = "#7F7F7F", high.color = "#191919", neutral.color = "grey90", legend = "", legend.position = "bottom") +
+  blank_themep
+
+plot.l4$layers[[2]]$geom_params$width = 0.3 ## for thinner bars
+plot.l4$layers[[3]]$geom_params$width = 0.3
+#plot(plot.l4)
+```
+The graph is based on N=`r dimvision[1]`.
+```{r Savel4, echo=F, results='hide', eval=T}
+png(file="../outputs/fig_vision4_hr.png", width = 8, height = 4, units = "in", res = 300) ## high res
+    plot.l4
+dev.off()
+png(file="../outputs/fig_vision4_lr.png", width = 8, height = 4, units = "in", res = 70) ## low res
+    plot.l4
+dev.off()
+```
+
+
+
+### Hydropower
+- Hydropower represents an important part of the Swiss electricity generation mix. All things considered at this moment, does your organisation consider the following measures to expand HP capacity in Switzerland to be realistic? 
+
+
+I have reversed the response scale. Now:
+- Completely unrealistic.  (1)  Rather unrealistic.  (2)  Rather realistic.  (3)  Completely realistic.  (4) 
+```{r VoverviewHP, echo=F}
+vision.hp <- subset(data, select = c(Q31_1,Q31_2,Q31_3,Q31_4))
+## reverse scale
+vision.hp$Q31_1 <- factor((5-vision.hp$Q31_1), labels = visionlevels)
+vision.hp$Q31_2 <- factor((5-vision.hp$Q31_2), labels = visionlevels)
+vision.hp$Q31_3 <- factor((5-vision.hp$Q31_3), labels = visionlevels)
+vision.hp$Q31_4 <- factor((5-vision.hp$Q31_4), labels = visionlevels)
+
+names(vision.hp) <- c(
+			Q31_1="By new pumped storage facilities.",
+			Q31_2="By new small hydropower plants.",
+			Q31_3="By expansion of existing plants.",
+			Q31_4="By modernization of existing plants.")
+
+lhp <- likert(vision.hp)
+dimvisionhp <- dim(na.omit(vision.hp))
+
+par(mfrow=c(2,1))
+
+
+plot.lhp <- likert.bar.plot(lhp, wrap =25, low.color = "#7F7F7F", high.color = "#191919", neutral.color = "grey90", legend = "", legend.position = "bottom") +
+  blank_themep
+plot.lhp$layers[[2]]$geom_params$width = 0.3
+plot.lhp$layers[[3]]$geom_params$width = 0.3
+#plot(plot.lhp)
+```
+The graph is based on N=`r dimvisionhp[1]`.
+```{r Savelhp, echo=F, results='hide', eval=T}
+png(file="../outputs/fig_vision_hp_hr.png", width = 8, height = 4, units = "in", res = 300) ## high res
+    plot.lhp
+dev.off()
+png(file="../outputs/fig_vision_hp_lr.png", width = 8, height = 4, units = "in", res = 70) ## low res
+    plot.lhp
+dev.off()
+```
+
+```{r SaveAllVisions, echo=F, results='hide'}
+png(file="../outputs/fig_visionALL_hr.png", width = 16, height = 16, units = "in", res = 300) ## high res
+par(mfrow=c(2,1))
+  plot.l4    
+  plot.lhp
+dev.off()
+png(file="../outputs/fig_visionALL_lr.png", width = 8, height = 8, units = "in", res = 70) ## low res
+par(mfrow=c(2,1))
+  plot.l4  
+  plot.lhp
+dev.off()
+```
+
+
+
+## Correlation between feasibility view and organizational characteristics
+
+
