@@ -183,19 +183,20 @@ attach(data)
 p.pol <- ggplot(data, aes(pol.act)) +
   geom_histogram(binwidth = 0.5, fill = "pink", color = "gray") +
   scale_x_continuous(breaks = seq(0,7,1)) +
-  labs(x="Political activeness", y="Count") +
+  labs(x="Political activeness (# of actions taken)", y="Count") +
   blank_themep +
   theme(aspect.ratio = 1/0.6)
 #p.pol + facet_grid(cols = vars(act.hp))
 p.media <- ggplot(data, aes(media.act)) +
   geom_histogram(binwidth = 0.5, fill = "pink", color = "gray") +
   scale_x_continuous(breaks = seq(0,2,1)) +
-  labs(x="Media activeness", y="") +
+  labs(x="Media activeness (# of actions taken)", y="") +
   blank_themep +
   theme(aspect.ratio = 1/0.3)
 multiplot(p.pol, p.media, cols=2)
 ```
 
+Graphs based on N=`r length(pol.act)` (politics) and N=`r length(media.act)` (media).
 (I've decided to print colored graphs if they are not used in the book :)
 
 ### Var: Level of perceived barriers for **EV**
@@ -276,6 +277,8 @@ attach(data)
 ### Explaining vision with ordered logit regressions
 Here are my first-cut analyses of Swiss energy stakehodlers' views on the ES2050 goals in each energy sub-domain. Here, we are mainly interested in assessing whether their feasibility perceptions are correlated with their political and media activeness as well as perceived challenges associated with each technology. I use ordered logit. 
 
+For your convenience see also a guide for ordered logit: https://stats.idre.ucla.edu/r/dae/ordinal-logistic-regression/
+
 #### Model specification
 Here I'm running 7 regressions, each of which is for one of the seven policy goals. The line "eqn <-..." defines model specification and "model <-..." runs the regression.
 ```{r looplogit, echo=T, results='hide', message=F}
@@ -314,7 +317,6 @@ for (i in 1:7){
 
 #### Regression results - All
 Note that when you interpret odds ratios if the confidence interval crosses 1 (e.g. 95%CI 0.9-1.1) this implies there is "no effect".
-See also a guide for ordered logit guide: https://stats.idre.ucla.edu/r/dae/ordinal-logistic-regression/
 ```{r logitresults, echo=T}
 results
 ```
